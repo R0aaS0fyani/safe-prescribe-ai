@@ -1,153 +1,283 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, Pill, AlertCircle, TrendingUp, FileText } from "lucide-react";
+import { 
+  User, 
+  Calendar, 
+  Pill, 
+  AlertCircle, 
+  TrendingUp, 
+  FileText, 
+  Activity,
+  Shield,
+  Clock,
+  BarChart3
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const Dashboard = () => {
   const patientData = {
     name: "Sarah Johnson",
     id: "PT-2024-1847",
     age: 58,
+    lastVisit: "2024-01-15",
     conditions: ["Hypertension", "Type 2 Diabetes", "Osteoarthritis"],
     medications: [
-      { name: "Lisinopril 10mg", frequency: "Once daily", status: "active" },
-      { name: "Metformin 1000mg", frequency: "Twice daily", status: "active" },
-      { name: "Ibuprofen 400mg", frequency: "As needed", status: "warning" },
-      { name: "Aspirin 81mg", frequency: "Once daily", status: "active" },
-    ],
-    alerts: [
-      {
-        type: "warning",
-        message: "Potential interaction: Ibuprofen may reduce Lisinopril effectiveness",
-        date: "2024-01-15",
-      },
-      {
-        type: "info",
-        message: "Medication review due in 30 days",
-        date: "2024-01-10",
-      },
+      { name: "Lisinopril", dosage: "10mg", frequency: "Once daily", status: "active", startDate: "2023-06-15" },
+      { name: "Metformin", dosage: "1000mg", frequency: "Twice daily", status: "active", startDate: "2023-03-10" },
+      { name: "Ibuprofen", dosage: "400mg", frequency: "As needed", status: "warning", startDate: "2024-01-01" },
+      { name: "Aspirin", dosage: "81mg", frequency: "Once daily", status: "active", startDate: "2023-06-15" },
     ],
   };
 
+  const stats = [
+    { label: "Active Medications", value: "4", icon: Pill, trend: "+1 this month" },
+    { label: "Interaction Alerts", value: "1", icon: AlertCircle, trend: "High priority", color: "warning" },
+    { label: "Adherence Rate", value: "94%", icon: TrendingUp, trend: "+2% vs last month" },
+    { label: "Days Since Review", value: "30", icon: Clock, trend: "Review due soon" },
+  ];
+
+  const interactionData = [
+    { severity: "Critical", count: 0, fill: "hsl(var(--destructive))" },
+    { severity: "Warning", count: 1, fill: "hsl(var(--warning))" },
+    { severity: "Minor", count: 2, fill: "hsl(var(--info))" },
+    { severity: "Safe", count: 1, fill: "hsl(var(--success))" },
+  ];
+
+  const adherenceData = [
+    { day: "Mon", rate: 100 },
+    { day: "Tue", rate: 100 },
+    { day: "Wed", rate: 75 },
+    { day: "Thu", rate: 100 },
+    { day: "Fri", rate: 100 },
+    { day: "Sat", rate: 100 },
+    { day: "Sun", rate: 100 },
+  ];
+
   return (
-    <section className="bg-muted/50 py-16 lg:py-24">
+    <section className="bg-gradient-to-b from-muted/30 to-background py-16 lg:py-24">
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
-              Patient Profile & Medication Dashboard
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Comprehensive medication history and real-time alerts at a glance
-            </p>
+        <div className="mx-auto max-w-7xl">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground lg:text-4xl mb-2">
+                  Patient Dashboard
+                </h2>
+                <p className="text-muted-foreground">
+                  Real-time medication monitoring and interaction analysis
+                </p>
+              </div>
+              <Button className="gap-2">
+                <FileText className="h-4 w-4" />
+                Export Report
+              </Button>
+            </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Patient Info Card */}
-            <Card className="lg:col-span-1 p-6">
-              <div className="mb-4 flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <User className="h-6 w-6 text-primary" />
+          {/* Patient Info Bar */}
+          <Card className="mb-6 border-l-4 border-l-primary">
+            <CardContent className="flex items-center justify-between p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <User className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground">{patientData.name}</h3>
+                  <p className="text-sm text-muted-foreground">{patientData.id}</p>
+                </div>
+              </div>
+              <div className="flex gap-8">
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Age</p>
+                  <p className="text-lg font-semibold text-foreground">{patientData.age}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Last Visit</p>
+                  <p className="text-lg font-semibold text-foreground">{patientData.lastVisit}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Conditions</p>
+                  <p className="text-lg font-semibold text-foreground">{patientData.conditions.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Grid */}
+          <div className="grid gap-6 mb-6 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-lg bg-${stat.color || 'primary'}/10`}>
+                      <stat.icon className={`h-6 w-6 text-${stat.color || 'primary'}`} />
+                    </div>
+                    {stat.color === 'warning' && (
+                      <Badge variant="outline" className="border-warning text-warning">Alert</Badge>
+                    )}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{patientData.name}</h3>
-                    <p className="text-sm text-muted-foreground">{patientData.id}</p>
+                    <p className="text-3xl font-bold text-foreground mb-1">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+                    <p className="text-xs text-muted-foreground">{stat.trend}</p>
                   </div>
-                </div>
-              </div>
-              
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Age:</span>
-                  <span className="font-medium text-foreground">{patientData.age}</span>
-                </div>
-                
-                <div>
-                  <p className="mb-2 text-sm text-muted-foreground">Conditions:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {patientData.conditions.map((condition, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {condition}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-              <Button className="mt-6 w-full" variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
-                View Full History
-              </Button>
+          {/* Charts Row */}
+          <div className="grid gap-6 mb-6 lg:grid-cols-2">
+            {/* Adherence Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Weekly Adherence Rate
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    rate: {
+                      label: "Adherence",
+                      color: "hsl(var(--primary))",
+                    },
+                  }}
+                  className="h-[200px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={adherenceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="rate" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
             </Card>
 
-            {/* Medications List */}
-            <Card className="lg:col-span-2 p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Pill className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Active Medications</h3>
-                </div>
-                <Badge variant="secondary">{patientData.medications.length} drugs</Badge>
-              </div>
-
-              <div className="space-y-3">
-                {patientData.medications.map((med, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between rounded-lg border p-4 transition-colors ${
-                      med.status === "warning" ? "border-warning/30 bg-warning/5" : "border-border bg-card"
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <p className="font-medium text-foreground">{med.name}</p>
-                        {med.status === "warning" && (
-                          <AlertCircle className="h-4 w-4 text-warning" />
-                        )}
+            {/* Interaction Severity Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Interaction Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  {interactionData.map((item, index) => (
+                    <div key={index} className="flex items-center gap-3 rounded-lg border border-border p-4">
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.fill }} />
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{item.count}</p>
+                        <p className="text-sm text-muted-foreground">{item.severity}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{med.frequency}</p>
                     </div>
-                    <Badge
-                      variant={med.status === "warning" ? "outline" : "secondary"}
-                      className={med.status === "warning" ? "border-warning text-warning" : ""}
-                    >
-                      {med.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </CardContent>
             </Card>
           </div>
 
-          {/* Alerts Section */}
-          <Card className="mt-6 p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-warning" />
-              <h3 className="font-semibold text-foreground">Recent Alerts</h3>
-            </div>
+          {/* Active Medications Table */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5 text-primary" />
+                  Active Medications
+                </CardTitle>
+                <Badge variant="secondary">{patientData.medications.length} total</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Medication</TableHead>
+                    <TableHead>Dosage</TableHead>
+                    <TableHead>Frequency</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {patientData.medications.map((med, index) => (
+                    <TableRow key={index} className={med.status === "warning" ? "bg-warning/5" : ""}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {med.name}
+                          {med.status === "warning" && (
+                            <AlertCircle className="h-4 w-4 text-warning" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{med.dosage}</TableCell>
+                      <TableCell>{med.frequency}</TableCell>
+                      <TableCell>{med.startDate}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={med.status === "warning" ? "outline" : "secondary"}
+                          className={med.status === "warning" ? "border-warning text-warning" : ""}
+                        >
+                          {med.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">
+                          Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-3">
-              {patientData.alerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`flex items-start gap-3 rounded-lg border p-4 ${
-                    alert.type === "warning"
-                      ? "border-warning/30 bg-warning/5"
-                      : "border-info/30 bg-info/5"
-                  }`}
-                >
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground">{alert.message}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{alert.date}</p>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    Review
-                  </Button>
+          {/* Critical Alert */}
+          <Card className="border-l-4 border-l-warning bg-warning/5">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20">
+                  <AlertCircle className="h-5 w-5 text-warning" />
                 </div>
-              ))}
-            </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground mb-1">Drug Interaction Warning</h4>
+                  <p className="text-sm text-foreground mb-2">
+                    Potential interaction detected: Ibuprofen may reduce the effectiveness of Lisinopril and increase blood pressure.
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <Clock className="h-3 w-3" />
+                    Detected on 2024-01-15
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="default">
+                      Review Interaction
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      Suggest Alternative
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
       </div>
