@@ -160,7 +160,7 @@ const Dashboard = () => {
   ].filter(Boolean).length;
 
   return (
-    <section className="bg-gradient-to-b from-muted/30 to-background py-16 lg:py-24">
+    <section id="dashboard" className="bg-gradient-to-b from-muted/30 to-background py-16 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-7xl">
           <InteractionModal

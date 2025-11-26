@@ -70,7 +70,7 @@ const DrugChecker = () => {
   };
 
   return (
-    <section className="py-16 lg:py-24">
+    <section id="drug-checker" className="py-16 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
