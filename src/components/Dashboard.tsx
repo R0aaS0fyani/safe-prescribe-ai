@@ -1,6 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   User, 
   Calendar, 
@@ -11,8 +15,14 @@ import {
   Activity,
   Shield,
   Clock,
-  BarChart3
+  BarChart3,
+  Search,
+  Filter,
+  CalendarIcon
 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -25,6 +35,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const Dashboard = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [conditionFilter, setConditionFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+
   const patientData = {
     name: "Sarah Johnson",
     id: "PT-2024-1847",
@@ -62,6 +78,32 @@ const Dashboard = () => {
     { day: "Sat", rate: 100 },
     { day: "Sun", rate: 100 },
   ];
+
+  const filteredMedications = useMemo(() => {
+    return patientData.medications.filter((med) => {
+      // Search filter
+      const matchesSearch = med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        med.dosage.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = statusFilter === "all" || med.status === statusFilter;
+      
+      // Date range filter
+      const medDate = new Date(med.startDate);
+      const matchesDateFrom = !dateFrom || medDate >= dateFrom;
+      const matchesDateTo = !dateTo || medDate <= dateTo;
+      
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+    });
+  }, [searchTerm, statusFilter, dateFrom, dateTo, patientData.medications]);
+
+  const activeFiltersCount = [
+    statusFilter !== "all",
+    conditionFilter !== "all",
+    dateFrom,
+    dateTo,
+    searchTerm
+  ].filter(Boolean).length;
 
   return (
     <section className="bg-gradient-to-b from-muted/30 to-background py-16 lg:py-24">
@@ -197,12 +239,116 @@ const Dashboard = () => {
           {/* Active Medications Table */}
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <CardTitle className="flex items-center gap-2">
                   <Pill className="h-5 w-5 text-primary" />
                   Active Medications
                 </CardTitle>
-                <Badge variant="secondary">{patientData.medications.length} total</Badge>
+                <Badge variant="secondary">{filteredMedications.length} of {patientData.medications.length}</Badge>
+              </div>
+
+              {/* Filters */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter className="h-4 w-4" />
+                  <span>Filter medications</span>
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {activeFiltersCount} active
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search medications..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="warning">Warning</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Date From */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !dateFrom && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateFrom ? format(dateFrom, "PPP") : "Start date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Date To */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal",
+                          !dateTo && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateTo ? format(dateTo, "PPP") : "End date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setConditionFilter("all");
+                      setDateFrom(undefined);
+                      setDateTo(undefined);
+                    }}
+                  >
+                    Clear all filters
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -218,7 +364,14 @@ const Dashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {patientData.medications.map((med, index) => (
+                  {filteredMedications.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        No medications found matching your filters
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredMedications.map((med, index) => (
                     <TableRow key={index} className={med.status === "warning" ? "bg-warning/5" : ""}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -245,7 +398,8 @@ const Dashboard = () => {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
