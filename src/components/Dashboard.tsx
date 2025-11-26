@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import InteractionModal from "@/components/InteractionModal";
 import { 
   User, 
   Calendar, 
@@ -40,6 +41,59 @@ const Dashboard = () => {
   const [conditionFilter, setConditionFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [interactionModalOpen, setInteractionModalOpen] = useState(false);
+  const [selectedInteraction, setSelectedInteraction] = useState<any>(null);
+
+  const interactionDetails = {
+    drug1: "Ibuprofen",
+    drug2: "Lisinopril",
+    severity: "warning" as const,
+    description: "Ibuprofen and other NSAIDs may reduce the antihypertensive effect of ACE inhibitors like Lisinopril. This interaction can result in decreased blood pressure control and potentially increase the risk of renal dysfunction.",
+    mechanism: "NSAIDs inhibit prostaglandin synthesis, which can counteract the vasodilatory and natriuretic effects of ACE inhibitors. This leads to sodium and water retention, potentially elevating blood pressure and reducing the effectiveness of antihypertensive therapy.",
+    clinicalEvidence: "Multiple clinical studies have demonstrated that concurrent use of NSAIDs with ACE inhibitors can result in a significant reduction in antihypertensive efficacy. A meta-analysis of 23 studies showed that NSAIDs increased systolic blood pressure by an average of 3-5 mmHg in patients taking ACE inhibitors. Additionally, combination therapy has been associated with increased risk of acute kidney injury, particularly in elderly patients or those with pre-existing renal impairment.",
+    recommendations: [
+      "Monitor blood pressure closely, especially during the first few weeks of concurrent therapy or after dose adjustments",
+      "Assess renal function (serum creatinine and potassium) at baseline and periodically during treatment",
+      "Consider using the lowest effective dose of NSAID for the shortest duration possible",
+      "Evaluate the need for NSAID therapy and consider alternative analgesics such as acetaminophen",
+      "Counsel patients to avoid over-the-counter NSAIDs without consulting healthcare provider",
+      "Consider increasing the dose of ACE inhibitor if blood pressure control is inadequate"
+    ],
+    alternatives: [
+      {
+        name: "Acetaminophen (Paracetamol)",
+        reason: "First-line alternative for pain management. Does not significantly affect blood pressure or interact with ACE inhibitors. Recommended dose: 325-650mg every 4-6 hours, maximum 3000mg/day."
+      },
+      {
+        name: "Topical NSAIDs (e.g., Diclofenac gel)",
+        reason: "Provides localized pain relief with minimal systemic absorption, reducing the risk of cardiovascular and renal interactions. Suitable for localized musculoskeletal pain."
+      },
+      {
+        name: "COX-2 Selective Inhibitors (e.g., Celecoxib)",
+        reason: "May have a lower impact on blood pressure compared to non-selective NSAIDs, though monitoring is still required. Consider if NSAID therapy is essential and other alternatives are ineffective."
+      }
+    ],
+    references: [
+      {
+        title: "Effects of NSAIDs on blood pressure in hypertensive patients treated with ACE inhibitors",
+        source: "Journal of Clinical Hypertension, 2019;21(8):1145-1153"
+      },
+      {
+        title: "Interaction between NSAIDs and ACE inhibitors: Risk of acute kidney injury",
+        source: "American Journal of Kidney Diseases, 2020;75(2):213-222"
+      },
+      {
+        title: "Clinical guidelines for managing drug interactions in cardiovascular disease",
+        source: "European Heart Journal, 2021;42(15):1475-1487"
+      }
+    ],
+    detectedDate: "2024-01-15"
+  };
+
+  const handleViewInteraction = () => {
+    setSelectedInteraction(interactionDetails);
+    setInteractionModalOpen(true);
+  };
 
   const patientData = {
     name: "Sarah Johnson",
@@ -109,6 +163,11 @@ const Dashboard = () => {
     <section className="bg-gradient-to-b from-muted/30 to-background py-16 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-7xl">
+          <InteractionModal
+            open={interactionModalOpen}
+            onOpenChange={setInteractionModalOpen}
+            interaction={selectedInteraction}
+          />
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -377,7 +436,12 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2">
                           {med.name}
                           {med.status === "warning" && (
-                            <AlertCircle className="h-4 w-4 text-warning" />
+                            <button
+                              onClick={handleViewInteraction}
+                              className="inline-flex items-center hover:opacity-80 transition-opacity"
+                            >
+                              <AlertCircle className="h-4 w-4 text-warning" />
+                            </button>
                           )}
                         </div>
                       </TableCell>
@@ -422,10 +486,10 @@ const Dashboard = () => {
                     Detected on 2024-01-15
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="default">
+                    <Button size="sm" variant="default" onClick={handleViewInteraction}>
                       Review Interaction
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={handleViewInteraction}>
                       Suggest Alternative
                     </Button>
                   </div>
